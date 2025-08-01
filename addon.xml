@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.mimedia" version="1.0.0" name="MiMedia" provider-name="TuNombre">
+  <requires>
+    <import addon="xbmc.python" version="2.25.0"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource" library="resources/lib/main.py">
+    <provides>video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="en">Addon para películas y series desde catálogo remoto</summary>
+    <description lang="en">Reproduce videos desde un catálogo JSON alojado en GitHub, con categorías, temporadas, capítulos y favoritos.</description>
+    <platform>all</platform>
+  </extension>
+  <extension point="xbmc.addon.repository"/>
+</addon>
