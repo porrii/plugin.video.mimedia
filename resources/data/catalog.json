@@ -1,0 +1,29 @@
+{
+  "movies": [
+    {
+      "title": "Big Buck Bunny",
+      "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+    }
+  ],
+  "series": [
+    {
+      "title": "Serie Ejemplo",
+      "seasons": [
+        {
+          "season": 1,
+          "episodes": [
+            {
+              "title": "Capítulo 1",
+              "links": [
+                {
+                  "label": "Link 1",
+                  "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
