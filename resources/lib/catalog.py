@@ -1,12 +1,13 @@
 import json
-import requests
+import urllib.request
 
 def load_catalog(url):
     try:
-        r = requests.get(url, timeout=10)
-        if r.status_code == 200:
-            return r.json()
+        with urllib.request.urlopen(url, timeout=10) as response:
+            if response.status == 200:
+                data = response.read().decode('utf-8')
+                return json.loads(data)
     except Exception:
         pass
-    # En caso de error o sin conexión, carga catálogo local si quieres (aquí vacio)
+    # En caso de error o sin conexión, devolver catálogo vacío
     return {"movies": [], "series": []}

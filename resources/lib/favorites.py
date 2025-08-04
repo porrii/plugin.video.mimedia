@@ -1,7 +1,6 @@
 import os
 import json
 import xbmc
-import xbmcaddon
 
 ADDON_ID = 'plugin.video.mimedia'
 

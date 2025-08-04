@@ -3,8 +3,8 @@ import urllib.parse
 import xbmcplugin
 import xbmcgui
 import xbmcaddon
-from favorites import load_favorites
-from resources.lib.catalog import load_catalog
+from .favorites import load_favorites
+from .catalog import load_catalog
 
 addon = xbmcaddon.Addon()
 addon_handle = int(sys.argv[1])
