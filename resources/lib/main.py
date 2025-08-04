@@ -13,7 +13,7 @@ addon_url = sys.argv[0]
 catalog_url = addon.getSetting('catalog_url')
 if not catalog_url:
     # URL por defecto, cámbiala en settings si quieres
-    catalog_url = 'https://github.com/porrii/plugin.video.mimedia/blob/main/resources/data/catalog.json'
+    catalog_url = 'https://raw.githubusercontent.com/porrii/plugin.video.mimedia/main/resources/data/catalog.json'
 
 catalog = load_catalog(catalog_url)
 

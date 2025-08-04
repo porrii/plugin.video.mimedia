@@ -1,11 +1,11 @@
 import os
 import json
-import xbmc
+import xbmcvfs
 
 ADDON_ID = 'plugin.video.mimedia'
 
 def _path():
-    p = xbmc.translatePath(f'special://profile/addon_data/{ADDON_ID}')
+    p = xbmcvfs.translatePath(f'special://profile/addon_data/{ADDON_ID}')
     if not os.path.exists(p):
         os.makedirs(p)
     return os.path.join(p, 'favorites.json')
