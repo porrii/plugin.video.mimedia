@@ -3,10 +3,7 @@ import urllib.parse
 import xbmcplugin
 import xbmcgui
 import xbmcaddon
-import xbmc
-import json
-import requests
-from favorites import load_favorites, add_favorite, remove_favorite
+from favorites import load_favorites
 from resources.lib.catalog import load_catalog
 
 addon = xbmcaddon.Addon()
@@ -16,7 +13,7 @@ addon_url = sys.argv[0]
 catalog_url = addon.getSetting('catalog_url')
 if not catalog_url:
     # URL por defecto, cámbiala en settings si quieres
-    catalog_url = 'https://raw.githubusercontent.com/tuusuario/tu-repo/main/catalog.json'
+    catalog_url = 'https://github.com/porrii/plugin.video.mimedia/blob/main/resources/data/catalog.json'
 
 catalog = load_catalog(catalog_url)
 

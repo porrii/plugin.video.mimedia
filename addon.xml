@@ -11,5 +11,4 @@
     <description lang="en">Reproduce videos desde un catálogo JSON alojado en GitHub, con categorías, temporadas, capítulos y favoritos.</description>
     <platform>all</platform>
   </extension>
-  <extension point="xbmc.addon.repository"/>
 </addon>
