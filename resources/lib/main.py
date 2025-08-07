@@ -12,7 +12,6 @@ addon_url = sys.argv[0]
 
 catalog_url = addon.getSetting('catalog_url')
 if not catalog_url:
-    # URL por defecto, cámbiala en settings si quieres
     catalog_url = 'https://raw.githubusercontent.com/porrii/plugin.video.mimedia/main/resources/data/catalog.json'
 
 catalog = load_catalog(catalog_url)
@@ -21,35 +20,58 @@ def build_url(query):
     return addon_url + '?' + urllib.parse.urlencode(query)
 
 def list_categories():
-    # Mostrar categorías: Películas y Series
     li = xbmcgui.ListItem('Películas')
-    url = build_url({'mode': 'list_movies'})
-    xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
+    xbmcplugin.addDirectoryItem(handle=addon_handle, url=build_url({'mode': 'list_movies'}), listitem=li, isFolder=True)
 
     li = xbmcgui.ListItem('Series')
-    url = build_url({'mode': 'list_series'})
-    xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
+    xbmcplugin.addDirectoryItem(handle=addon_handle, url=build_url({'mode': 'list_series'}), listitem=li, isFolder=True)
 
-    # Mostrar Favoritos
     li = xbmcgui.ListItem('Favoritos')
-    url = build_url({'mode': 'list_favorites'})
-    xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
+    xbmcplugin.addDirectoryItem(handle=addon_handle, url=build_url({'mode': 'list_favorites'}), listitem=li, isFolder=True)
 
     xbmcplugin.endOfDirectory(addon_handle)
 
 def list_movies():
     for movie in catalog.get('movies', []):
         li = xbmcgui.ListItem(movie['title'])
-        li.setInfo('video', {'title': movie['title']})
-        li.setProperty('IsPlayable', 'true')
-        li.setArt({'thumb': movie.get('thumb', '')})
-        url = build_url({'mode': 'play', 'url': movie['url'], 'title': movie['title']})
-        xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=False)
+        li.setInfo('video', {
+            'title': movie['title'],
+            'plot': movie.get('description', ''),
+            'year': movie.get('year', ''),
+            'genre': movie.get('genres', ''),
+            'country': movie.get('country', ''),
+            'duration': movie.get('duration', '')
+        })
+        url = build_url({'mode': 'list_movie_links', 'title': movie['title']})
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
+    xbmcplugin.endOfDirectory(addon_handle)
+
+def list_movie_links(title):
+    movie = next((m for m in catalog.get('movies', []) if m['title'] == title), None)
+    if not movie:
+        xbmcgui.Dialog().notification('Error', 'Película no encontrada', xbmcgui.NOTIFICATION_ERROR)
+        xbmcplugin.endOfDirectory(addon_handle)
+        return
+    streams = movie.get('streams', {})
+    for idioma, enlaces in streams.items():
+        for idx, link in enumerate(enlaces):
+            label = f"{idioma.capitalize()} - Opción {idx + 1}"
+            li = xbmcgui.ListItem(label)
+            li.setInfo('video', {'title': movie['title'], 'genre': movie.get('genres', '')})
+            li.setProperty('IsPlayable', 'true')
+            url = link.get('m3u8_url') or link.get('page_url')
+            xbmcplugin.addDirectoryItem(handle=addon_handle, url=build_url({'mode': 'play', 'url': url, 'title': movie['title']}), listitem=li, isFolder=False)
     xbmcplugin.endOfDirectory(addon_handle)
 
 def list_series():
     for serie in catalog.get('series', []):
         li = xbmcgui.ListItem(serie['title'])
+        li.setInfo('video', {
+            'title': serie['title'],
+            'plot': serie.get('description', ''),
+            'genre': serie.get('genres', ''),
+            'country': serie.get('country', '')
+        })
         url = build_url({'mode': 'list_seasons', 'serie': serie['title']})
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
     xbmcplugin.endOfDirectory(addon_handle)
@@ -68,43 +90,44 @@ def list_seasons(serie_title):
 
 def list_episodes(serie_title, season_number):
     serie = next((s for s in catalog.get('series', []) if s['title'] == serie_title), None)
-    if not serie:
-        xbmcgui.Dialog().notification('Error', 'Serie no encontrada', xbmcgui.NOTIFICATION_ERROR)
-        xbmcplugin.endOfDirectory(addon_handle)
-        return
     season = next((se for se in serie.get('seasons', []) if str(se['season']) == str(season_number)), None)
-    if not season:
-        xbmcgui.Dialog().notification('Error', 'Temporada no encontrada', xbmcgui.NOTIFICATION_ERROR)
+    if not serie or not season:
+        xbmcgui.Dialog().notification('Error', 'Temporada o serie no encontrada', xbmcgui.NOTIFICATION_ERROR)
         xbmcplugin.endOfDirectory(addon_handle)
         return
     for ep in season.get('episodes', []):
         li = xbmcgui.ListItem(ep['title'])
-        url = build_url({'mode': 'list_links', 'serie': serie_title, 'season': str(season_number), 'episode': ep['title']})
+        li.setInfo('video', {
+            'title': ep['title'],
+            'plot': ep.get('description', ''),
+            'duration': ep.get('duration', '')
+        })
+        url = build_url({
+            'mode': 'list_links',
+            'serie': serie_title,
+            'season': str(season_number),
+            'episode': ep['title']
+        })
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
     xbmcplugin.endOfDirectory(addon_handle)
 
 def list_links(serie_title, season_number, episode_title):
     serie = next((s for s in catalog.get('series', []) if s['title'] == serie_title), None)
-    if not serie:
-        xbmcgui.Dialog().notification('Error', 'Serie no encontrada', xbmcgui.NOTIFICATION_ERROR)
-        xbmcplugin.endOfDirectory(addon_handle)
-        return
     season = next((se for se in serie.get('seasons', []) if str(se['season']) == str(season_number)), None)
-    if not season:
-        xbmcgui.Dialog().notification('Error', 'Temporada no encontrada', xbmcgui.NOTIFICATION_ERROR)
-        xbmcplugin.endOfDirectory(addon_handle)
-        return
     episode = next((ep for ep in season.get('episodes', []) if ep['title'] == episode_title), None)
-    if not episode:
+    if not serie or not season or not episode:
         xbmcgui.Dialog().notification('Error', 'Capítulo no encontrado', xbmcgui.NOTIFICATION_ERROR)
         xbmcplugin.endOfDirectory(addon_handle)
         return
-    for link in episode.get('links', []):
-        li = xbmcgui.ListItem(link.get('label', 'Link'))
-        li.setInfo('video', {'title': episode_title})
-        li.setProperty('IsPlayable', 'true')
-        url = build_url({'mode': 'play', 'url': link['url'], 'title': episode_title})
-        xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=False)
+    streams = episode.get('streams', {})
+    for idioma, enlaces in streams.items():
+        for idx, link in enumerate(enlaces):
+            label = f"{idioma.capitalize()} - Opción {idx + 1}"
+            li = xbmcgui.ListItem(label)
+            li.setInfo('video', {'title': episode_title})
+            li.setProperty('IsPlayable', 'true')
+            url = link.get('m3u8_url') or link.get('page_url')
+            xbmcplugin.addDirectoryItem(handle=addon_handle, url=build_url({'mode': 'play', 'url': url, 'title': episode_title}), listitem=li, isFolder=False)
     xbmcplugin.endOfDirectory(addon_handle)
 
 def play_video(url, title):
@@ -122,8 +145,7 @@ def list_favorites():
         li = xbmcgui.ListItem(item['title'])
         li.setProperty('IsPlayable', 'true')
         li.setInfo('video', {'title': item['title']})
-        url = build_url({'mode': 'play', 'url': item['url'], 'title': item['title']})
-        xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=False)
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url=build_url({'mode': 'play', 'url': item['url'], 'title': item['title']}), listitem=li, isFolder=False)
     xbmcplugin.endOfDirectory(addon_handle)
 
 def router(paramstring):
@@ -133,6 +155,8 @@ def router(paramstring):
         list_categories()
     elif mode == 'list_movies':
         list_movies()
+    elif mode == 'list_movie_links':
+        list_movie_links(params.get('title'))
     elif mode == 'list_series':
         list_series()
     elif mode == 'list_seasons':
